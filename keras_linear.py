@@ -7,7 +7,8 @@ from time import time
 
 # Function is y = 3x + 1
 def linear_function(x):
-    return 3 * x + 1
+    noise = np.random.normal(0, 1, x.shape)
+    return 3 * x + 1 + noise
 
 
 checkpoint_path = os.path.join(os.getcwd(), 'checkpoint/') + 'cp-{epoch:04d}.ckpt'
@@ -23,24 +24,23 @@ callbacks = [
         patience=5,
         verbose=1),
     tf.keras.callbacks.TensorBoard(
-        log_dir=os.path.join(os.getcwd(), 'log/{}'.format(time())),
+        log_dir=os.path.join(os.getcwd(), 'log'),
+        # log_dir=os.path.join(os.getcwd(), 'log/{}'.format(time())),
         # How often to log histogram visualizations
         histogram_freq=0,
         # How often to log embedding visualizations
         embeddings_freq=0,
         # How often to write logs (default: once per epoch)
         update_freq='epoch'),
-    tf.keras.callbacks.ModelCheckpoint(
-        # Create a callback that saves the model's weights
-        filepath=checkpoint_path,
-        save_weights_only=True,
-        # Save the model every 5 epochs
-        period=5,
-        verbose=1)
 ]
 
 
-def build_model():
+def main():
+    # Load training data from function
+    x_batch = np.linspace(start=-10.0, stop=10.0, num=100)
+    y_batch = np.array(linear_function(x_batch), dtype=float)
+
+    # Build model
     model = tf.keras.models.Sequential(
         [tf.keras.layers.Dense(units=1, input_shape=[1])]
     )
@@ -50,22 +50,26 @@ def build_model():
                   metrics=[
                       tf.keras.metrics.MeanAbsoluteError(),
                       tf.keras.metrics.MeanSquaredError(),
-                  ], )
-    return model
+                  ]
+    )
 
-
-def main():
-    xs = np.linspace(start=-10.0, stop=10.0, num=1000)
-    ys = np.array(linear_function(xs), dtype=float)
-
-    model = build_model()
-    history = model.fit(x=xs,
-                        y=ys,
+    # Fit model with training data
+    history = model.fit(x=x_batch,
+                        y=y_batch,
                         callbacks=callbacks,
                         validation_split=0.1,
                         epochs=50)
 
-    print(model.predict([10.0, 5.0]))
+    # Make predictions using model
+    y_pred_batch = model.predict(x_batch)
+
+    # Plot scattered data and function fit
+    plt.scatter(x_batch, y_batch)
+    plt.plot(x_batch, y_pred_batch, color='red')
+    plt.title('Function')
+    plt.ylabel('Y')
+    plt.xlabel('X')
+    plt.show()
 
 
 if __name__ == '__main__':
