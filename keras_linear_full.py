@@ -1,8 +1,8 @@
 import os
+
+import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-import matplotlib.pyplot as plt
-from time import time
 
 
 # Function is y = 3x + 1
@@ -19,9 +19,9 @@ callbacks = [
         # Stop training when `val_loss` is no longer improving
         monitor='val_loss',
         # "no longer improving" being defined as "no better than 1e-3 less"
-        min_delta=1e-3,
+        min_delta=1e-6,
         # "no longer improving" being further defined as "for at least 5 epochs"
-        patience=5,
+        patience=10,
         verbose=1),
     tf.keras.callbacks.TensorBoard(
         log_dir=os.path.join(os.getcwd(), 'log'),
@@ -51,7 +51,7 @@ def main():
                       tf.keras.metrics.MeanAbsoluteError(),
                       tf.keras.metrics.MeanSquaredError(),
                   ]
-    )
+                  )
 
     # Fit model with training data
     history = model.fit(x=x_batch,
